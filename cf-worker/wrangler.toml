@@ -1,0 +1,10 @@
+name = "bitsofgood-spring23-assessment-uploader"
+main = "src/index.ts"
+compatibility_date = "2023-01-14"
+
+account_id = "60b433d5960c03dd58ecf6ae90329ae7"
+workers_dev = true
+
+[[r2_buckets]]
+binding = "BOG_BUCKET"
+bucket_name = 'bitsofgood-spring23-assessment'

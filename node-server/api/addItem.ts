@@ -1,3 +1,4 @@
+import { ObjectID } from "bson";
 import { Response } from "express";
 import { Animal, TrainingLog, User } from "../types"
 import { getConnection } from "./dbConnector";
@@ -14,6 +15,17 @@ export async function genericAPIAdd(res: Response, item: ItemWithPath) {
     } catch (error) {
         res.status(500).send(`Internal error: ${error}`)
     }
+}
+
+export type URLWithPath = 
+    | { path: 'animals'; data: Pick<Animal, 'profilePicture'> }
+    | { path: 'users'; data: Pick<User, 'profilePicture'> }
+    | { path: 'trainingLogs'; data: Pick<TrainingLog, 'trainingLogVideo'> }
+
+export async function updateWithURL(id: ObjectID, urlData: URLWithPath) {
+    const db = await getConnection()
+    if (!db) throw new Error("Database connection failed");
+    await db.collection(urlData.path).updateOne({ '_id': id }, urlData.data)
 }
 
 async function addItem(item: ItemWithPath) {

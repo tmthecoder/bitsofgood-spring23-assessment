@@ -2,11 +2,13 @@ import express, { Request } from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import { animalSchema, fileUploadBodySchema, loginRequestBodySchema, trainingLogSchema, userSchema, UserWithId } from './types';
-import { genericAPIAdd } from './api/addItem';
+import { genericAPIAdd, updateWithURL, URLWithPath } from './api/addItem';
 import { getAnimalWithId, getListOfTrainingLogs, getListOfUsers, getListOfAnimals, getUserWithId } from './api/getItems';
 import { validateUser } from './api/validation';
 import jwt from 'jsonwebtoken'
 import multer from 'multer';
+import { createReadStream, unlink } from 'fs';
+import fetch from 'node-fetch';
 
 interface AdminQueryParams {
     size?: number,
@@ -20,6 +22,8 @@ interface UserPayload {
 }
 
 const SECRET_KEY = "some secret key";
+const STORAGE_BUCKET_URL = "https://pub-9079cd5b378f4bb8ac6a3a322bc9258c.r2.dev"
+const STORAGE_WORKER_URL = "https://bitsofgood-spring23-assessment-uploader.tmthecoder.workers.dev"
 
 dotenv.config();
 const app = express();
@@ -194,7 +198,31 @@ app.post('/api/file/upload', upload.single('file'), async (req, res) => {
         res.status(500).send("An internal error occurred")
         return
     }
-
+    const readStream = createReadStream(file.path);
+    const response = await fetch(`${STORAGE_WORKER_URL}/${parseResult.data.type}/${parseResult.data.id}`, {
+        method: "POST",
+        body: readStream
+    })
+    if (response.status != 200) {
+        res.status(500).send("An internal error occurred");
+        return;
+    }
+    unlink(file.path, () => {});
+    let urlData: URLWithPath;
+    const url = `${STORAGE_BUCKET_URL}/${await response.text()}`
+    switch (parseResult.data.type) {
+        case "user":
+            urlData = { path: "users", data: { profilePicture: url }}
+            break;
+        case "animal":
+            urlData = { path: "animals", data: { profilePicture: url }}
+            break;
+        case "training":
+            urlData = { path: "trainingLogs", data: { trainingLogVideo: url }}
+            break;
+    }
+    await updateWithURL(parseResult.data.id, urlData);
+    res.send();
 })
 
 app.listen(APP_PORT, () => {
@@ -202,7 +230,7 @@ app.listen(APP_PORT, () => {
 })
 
 declare module "express-serve-static-core" {
-  interface Request {
-    user?: UserWithId;
-  }
+    interface Request {
+        user?: UserWithId;
+    }
 }
