@@ -1,16 +1,13 @@
 import { Db, MongoClient } from "mongodb";
 
-// Connection URI
-const uri =
-    "mongodb://localhost:27017";
 // Create a new MongoClient
-const client = new MongoClient(uri);
+const client = new MongoClient(process.env.MONGO_URL!);
 
 let dbConnection: Db | undefined;
 
 export async function connectToDB() {
     const connection = await client.connect()
-    dbConnection = connection.db("animalTrainingManagement")
+    dbConnection = connection.db(process.env.MONGO_DATABASE)
 }
 
 export async function getConnection() {

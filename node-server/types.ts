@@ -1,4 +1,5 @@
 import { genSalt, hash } from "bcrypt";
+import { Request } from "express";
 import { ObjectId } from "mongodb";
 import { z } from "zod";
 
@@ -12,7 +13,6 @@ export const userSchema = z.object({
         const salt = await genSalt(10);
         return hash(plaintext, salt);
     }),
-    salt: z.string(),
     profilePicture: z.string().optional()
 });
 
@@ -51,3 +51,20 @@ export type LoginRequestBody = z.infer<typeof loginRequestBodySchema>;
 export type UserWithId = User & { _id: ObjectId }
 export type AnimalWithID = Animal & { _id: ObjectId }
 export type TrainingLogWithID = TrainingLog & { _id: ObjectId }
+
+export interface AdminQueryParams {
+    size?: number,
+    lastId?: string
+}
+
+export type AdminRequest = Request<{}, {}, {}, AdminQueryParams>
+
+export interface UserPayload {
+    user: UserWithId
+}
+
+declare module "express-serve-static-core" {
+    interface Request {
+        user?: UserWithId;
+    }
+}
