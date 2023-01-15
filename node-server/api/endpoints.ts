@@ -2,7 +2,7 @@ import express from 'express';
 import 'dotenv/config'
 import cors from 'cors';
 import { AdminRequest, animalSchema, fileUploadBodySchema, loginRequestBodySchema, trainingLogSchema, userSchema, UserWithId } from '../types';
-import { genericAPIAdd, updateWithURL, URLWithPath } from './addItem';
+import { genericAPIAdd, updateAnimalHoursTrained, updateWithURL, URLWithPath } from './addItem';
 import { getAnimalWithId, getListOfTrainingLogs, getListOfUsers, getListOfAnimals, getUserWithId } from './getItems';
 import { validateUser } from './validation';
 import jwt from 'jsonwebtoken'
@@ -85,7 +85,8 @@ app.post('/api/animal', async (req, res) => {
     const body = await req.body;
     const animalBody = {
         ...body,
-        owner: req.user._id
+        owner: req.user._id,
+        hoursTrained: 0,
     }
     const result = animalSchema.safeParse(animalBody)
     if (!result.success) {
@@ -126,7 +127,7 @@ app.post('/api/training', async (req, res) => {
     if (associatedAnimal.owner != associatedUser._id) {
         res.status(400).send({ error: "The animal is not owned by the user associated with the log" })
     }
-
+    await updateAnimalHoursTrained(associatedAnimal._id, associatedAnimal.hoursTrained + trainingLog.hours)
     await genericAPIAdd(res, {
         path: 'trainingLogs',
         data: trainingLog
@@ -146,6 +147,7 @@ app.get('/api/admin/users', async (req: AdminRequest, res) => {
         lastId: list.at(list.length - 1)?._id
     }).send()
 });
+
 app.get('/api/admin/animals', async (req: AdminRequest, res) => {
     if (!req.user) {
         res.status(401).send()
@@ -159,6 +161,7 @@ app.get('/api/admin/animals', async (req: AdminRequest, res) => {
         lastId: list.at(list.length - 1)?._id
     }).send()
 });
+
 app.get('/api/admin/training', async (req: AdminRequest, res) => {
     if (!req.user) {
         res.status(401).send()

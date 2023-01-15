@@ -17,7 +17,7 @@ export async function genericAPIAdd(res: Response, item: ItemWithPath) {
     }
 }
 
-export type URLWithPath = 
+export type URLWithPath =
     | { path: 'animals'; data: Pick<Animal, 'profilePicture'> }
     | { path: 'users'; data: Pick<User, 'profilePicture'> }
     | { path: 'trainingLogs'; data: Pick<TrainingLog, 'trainingLogVideo'> }
@@ -26,6 +26,12 @@ export async function updateWithURL(id: ObjectID, urlData: URLWithPath) {
     const db = await getConnection()
     if (!db) throw new Error("Database connection failed");
     await db.collection(urlData.path).updateOne({ '_id': id }, urlData.data)
+}
+
+export async function updateAnimalHoursTrained(id: ObjectID, hours: number) {
+    const db = await getConnection()
+    if (!db) throw new Error("Database connection failed");
+    await db.collection('animals').updateOne({ '_id': id }, { hoursTrained: hours })
 }
 
 async function addItem(item: ItemWithPath) {
