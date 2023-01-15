@@ -2,13 +2,14 @@
   "name": "bitsofgood-spring23-assessment",
   "version": "1.0.0",
   "scripts": {
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
     "start": "node --experimental-specifier-resolution=node --loader ts-node/esm app.ts",
     "dev": "nodemon src/app.ts",
     "build": "tsc -p ."
   },
   "type": "module",
   "dependencies": {
+    "@jest/test-sequencer": "^29.3.1",
     "@types/jsonwebtoken": "^9.0.1",
     "bcrypt": "^5.1.0",
     "cors": "^2.8.5",

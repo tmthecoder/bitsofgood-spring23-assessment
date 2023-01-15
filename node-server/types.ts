@@ -20,7 +20,7 @@ export const animalSchema = z.object({
     name: z.string(),
     hoursTrained: z.number(),
     owner: zodOidType,
-    dateOfBirth: z.date().optional(),
+    dateOfBirth: z.coerce.date().optional(),
     profilePicture: z.string().optional()
 })
 
@@ -53,15 +53,11 @@ export type AnimalWithID = Animal & { _id: ObjectId }
 export type TrainingLogWithID = TrainingLog & { _id: ObjectId }
 
 export interface AdminQueryParams {
-    size?: number,
+    size?: string,
     lastId?: string
 }
 
 export type AdminRequest = Request<{}, {}, {}, AdminQueryParams>
-
-export interface UserPayload {
-    user: UserWithId
-}
 
 declare module "express-serve-static-core" {
     interface Request {

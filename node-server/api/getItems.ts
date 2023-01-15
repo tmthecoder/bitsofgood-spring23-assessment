@@ -42,7 +42,7 @@ async function getListOfItems(collection: string, size: number, lastId?: string)
     const db = await getConnection();
     if (!db) throw new Error("Database connection failed");
     if (lastId) {
-        return db.collection(collection).find({ '_id': { '$gt': lastId } }).limit(size).toArray()
+        return db.collection(collection).find({ '_id': { '$gt': new ObjectId(lastId) } }).limit(size).toArray()
     } else {
         return db.collection(collection).find().limit(size).toArray()
     }
