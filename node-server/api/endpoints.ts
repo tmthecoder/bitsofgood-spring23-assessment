@@ -6,7 +6,7 @@ import { genericAPIAdd, updateAnimalHoursTrained, updateWithURL, URLWithPath } f
 import { getAnimalWithId, getListOfTrainingLogs, getListOfUsers, getListOfAnimals, getUserWithId } from './getItems';
 import { validateUser } from './validation';
 import jwt from 'jsonwebtoken'
-import multer from 'multer';
+import multer, { memoryStorage } from 'multer';
 import { unlink } from 'fs';
 
 const app = express();
@@ -72,7 +72,6 @@ app.use((req, res, next) => {
         req.user = decoded
         next()
     } catch (error) {
-        console.log(`invalid: ${error}`)
         res.status(401).send({ error: "Invalid token" })
     }
 })
@@ -105,7 +104,7 @@ app.post('/api/training', async (req, res) => {
         res.status(401).send()
         return;
     }
-    const body = await req.body;
+    const body = req.body;
     const trainingLogBody = {
         ...body,
         user: req.user._id
@@ -120,7 +119,6 @@ app.post('/api/training', async (req, res) => {
     const associatedUser = await getUserWithId(trainingLog.user);
     const associatedAnimal = await getAnimalWithId(trainingLog.animal);
     if (!associatedUser || !associatedAnimal) {
-        console.log(associatedUser)
         res.status(400).send({ error: "The animal or user associated with the log does not exist" });
         return;
     }
@@ -178,12 +176,22 @@ app.get('/api/admin/training', async (req: AdminRequest, res) => {
     }).send()
 });
 
-const upload = multer()
+const upload = multer({ storage: memoryStorage()})
 app.post('/api/file/upload', upload.single('file'), async (req, res) => {
-    const parseResult = fileUploadBodySchema.safeParse(await req.body);
+    if (!req.user) {
+        res.status(401).send()
+        return;
+    }
+    const uploadRequestBody = {
+        ...req.body,
+    }
+    if (req.body["type"] == "user") {
+        uploadRequestBody["id"] = req.user._id
+    }
+    const parseResult = fileUploadBodySchema.safeParse(uploadRequestBody);
     const file = req.file;
     if (!file || !parseResult.success) {
-        res.status(500).send({ error: "An internal error occurred" })
+        res.status(400).send({ error: "Parameters and/or file not given" })
         return
     }
     const response = await fetch(`${process.env.STORAGE_WORKER_URL}/${parseResult.data.type}/${parseResult.data.id}`, {
@@ -194,7 +202,6 @@ app.post('/api/file/upload', upload.single('file'), async (req, res) => {
         res.status(500).send({ error: "An internal error occurred" });
         return;
     }
-    unlink(file.path, () => { });
     let urlData: URLWithPath;
     const url = `${process.env.STORAGE_BUCKET_URL}/${await response.text()}`
     switch (parseResult.data.type) {

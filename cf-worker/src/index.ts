@@ -30,12 +30,12 @@ export default {
 				status: 400
 			});
 		}
-		const parts = request.url.split("/");
+		const parts = request.url.replace("https://", "").split("/");
 		if (parts.length !== 3) {
 			return new Response("Invalid Path", { status: 400 });
 		}
 		const bucketPath = `${parts[1]}/${parts[2]}`;
-		env.BOG_BUCKET.put(bucketPath, request.body);
+		await env.BOG_BUCKET.put(bucketPath, request.body);
 		return new Response(bucketPath);
 	},
 };

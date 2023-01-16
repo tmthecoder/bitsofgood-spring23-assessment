@@ -17,7 +17,7 @@ beforeAll(async () => {
         dateOfBirth: "2023-01-10"
     })
     correctOwnerAnimalID = correctAnimalResult.body["_id"]
-    
+
     const authResult = await request(app).post('/api/user/verify').send({
         "email": "tejas1@tmthecoder.dev",
         "password": "some-password"
