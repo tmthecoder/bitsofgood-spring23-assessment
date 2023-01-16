@@ -112,7 +112,7 @@ app.post('/api/training', async (req, res) => {
     }
     const result = trainingLogSchema.safeParse(trainingLogBody)
     if (!result.success) {
-        res.status(400).send(result.error.format()._errors.toString());
+        res.status(400).send(result.error.flatten().fieldErrors);
         return;
     }
     const trainingLog = result.data;
@@ -120,12 +120,14 @@ app.post('/api/training', async (req, res) => {
     const associatedUser = await getUserWithId(trainingLog.user);
     const associatedAnimal = await getAnimalWithId(trainingLog.animal);
     if (!associatedUser || !associatedAnimal) {
+        console.log(associatedUser)
         res.status(400).send({ error: "The animal or user associated with the log does not exist" });
         return;
     }
 
     if (associatedAnimal.owner != associatedUser._id) {
         res.status(400).send({ error: "The animal is not owned by the user associated with the log" })
+        return;
     }
     await updateAnimalHoursTrained(associatedAnimal._id, associatedAnimal.hoursTrained + trainingLog.hours)
     await genericAPIAdd(res, {

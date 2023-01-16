@@ -25,7 +25,7 @@ export const animalSchema = z.object({
 })
 
 export const trainingLogSchema = z.object({
-    date: z.date(),
+    date: z.coerce.date(),
     description: z.string(),
     hours: z.number(),
     animal: zodOidType,

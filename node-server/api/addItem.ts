@@ -25,13 +25,13 @@ export type URLWithPath =
 export async function updateWithURL(id: ObjectID, urlData: URLWithPath) {
     const db = await getConnection()
     if (!db) throw new Error("Database connection failed");
-    await db.collection(urlData.path).updateOne({ '_id': id }, urlData.data)
+    await db.collection(urlData.path).updateOne({ '_id': id }, { $set: urlData.data })
 }
 
 export async function updateAnimalHoursTrained(id: ObjectID, hours: number) {
     const db = await getConnection()
     if (!db) throw new Error("Database connection failed");
-    await db.collection('animals').updateOne({ '_id': id }, { hoursTrained: hours })
+    await db.collection('animals').updateOne({ '_id': id }, { $set: { hoursTrained: hours }} )
 }
 
 async function addItem(item: ItemWithPath) {

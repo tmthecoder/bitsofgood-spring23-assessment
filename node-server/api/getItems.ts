@@ -20,7 +20,7 @@ export async function getTrainingLogWithId(id: ObjectId) {
 async function getItemWithId(collection: string, id: ObjectId) {
     const db = await getConnection()
     if (!db) throw new Error("Database connection failed")
-    return await db.collection(collection).findOne({ '_id': id });
+    return await db.collection(collection).findOne({ '_id': new ObjectId(id) });
 }
 
 export async function getListOfUsers(size: number, lastId?: string) {
