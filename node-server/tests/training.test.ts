@@ -93,7 +93,7 @@ describe("POST - /api/training", () => {
 
 describe("GET - /api/admin/training", () => {
   const trainingArray: any[] = [];
-  // Setup a bunch of animals
+  // Setup a bunch of training logs for lookups
   beforeAll(async () => {
     for (let i = 0; i < 50; i++) {
       trainingArray.push({

@@ -1,6 +1,5 @@
 import { Db, MongoClient } from "mongodb";
 
-// Create a new MongoClient
 const client = new MongoClient(process.env.MONGO_URL!);
 
 let dbConnection: Db | undefined;

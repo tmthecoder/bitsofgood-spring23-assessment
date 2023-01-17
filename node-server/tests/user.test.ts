@@ -68,7 +68,7 @@ describe("POST - /api/user/verify", () => {
 describe("GET - /api/admin/users", () => {
   let token: string | undefined;
   const userArray: any[] = [];
-  // Setup a bunch of users
+  // Setup a bunch of users for lookup
   beforeAll(async () => {
     for (let i = 0; i < 50; i++) {
       userArray.push({

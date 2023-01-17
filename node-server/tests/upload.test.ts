@@ -10,6 +10,7 @@ describe("POST - /api/file/upload", () => {
   let otherUserAnimalId: string | undefined;
   let otherUserTrainingLogId: string | undefined;
 
+  // Setup all needed IDs and tokens for testing
   beforeAll(async () => {
     const accountInfo = await request(app).post("/api/user").send({
       firstName: "Tejas",

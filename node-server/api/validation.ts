@@ -1,8 +1,8 @@
-import { compare, hash } from "bcrypt";
+import { compare } from "bcrypt";
 import { NextFunction, Request, Response } from "express";
 import { loginRequestBodySchema, User, UserWithId } from "../types";
-import { getUserWithEmail } from "./getItems";
 import jwt from "jsonwebtoken";
+import { getConnection } from "./dbConnector";
 
 type ValidationResponse =
   | { status: "valid"; user: User }
@@ -49,6 +49,7 @@ export async function verifyUserJWT(
   res: Response,
   next: NextFunction
 ) {
+  // Verify the JWT and continue to the actual request (exit of not valid)
   try {
     const authToken = req.header("Authorization")?.replace("Bearer ", "");
     if (!authToken) {
@@ -81,4 +82,12 @@ async function validateUser(
   } else {
     return { status: "valid", user: user };
   }
+}
+
+// Utility function to get a user from their email
+async function getUserWithEmail(email: string) {
+  const db = await getConnection();
+  if (!db) throw new Error("Database connection failed");
+  const result = await db.collection("users").findOne({ email: email });
+  return result as UserWithId | null;
 }

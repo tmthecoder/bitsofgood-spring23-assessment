@@ -95,6 +95,7 @@ async function getListOfTrainingLogs(size: number, lastId?: string) {
   return result as UserWithId[];
 }
 
+// Generic function to get a paginated MongoDB ObjectId-indexed list of items
 async function getListOfItems(
   collection: string,
   size: number,
@@ -102,6 +103,7 @@ async function getListOfItems(
 ) {
   const db = await getConnection();
   if (!db) throw new Error("Database connection failed");
+  // Use the lastID if it's present, if not, return the first `size` items
   if (lastId) {
     return db
       .collection(collection)
@@ -111,11 +113,4 @@ async function getListOfItems(
   } else {
     return db.collection(collection).find().limit(size).toArray();
   }
-}
-
-export async function getUserWithEmail(email: string) {
-  const db = await getConnection();
-  if (!db) throw new Error("Database connection failed");
-  const result = await db.collection("users").findOne({ email: email });
-  return result as UserWithId | null;
 }

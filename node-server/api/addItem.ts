@@ -34,6 +34,7 @@ export async function handleAddAnimalRequest(req: Request, res: Response) {
     res.status(401).send();
     return;
   }
+  // Set owner from the decoded JWT info
   const body = await req.body;
   const animalBody = {
     ...body,
@@ -57,6 +58,7 @@ export async function handleAddTrainingLogRequest(req: Request, res: Response) {
     res.status(401).send();
     return;
   }
+  // Set associated user with the decoded JWT info
   const body = req.body;
   const trainingLogBody = {
     ...body,
@@ -69,6 +71,7 @@ export async function handleAddTrainingLogRequest(req: Request, res: Response) {
   }
   const trainingLog = result.data;
 
+  // Get associated animal and make sure animal's owner is this user
   const associatedUser = await getUserWithId(trainingLog.user);
   const associatedAnimal = await getAnimalWithId(trainingLog.animal);
   if (!associatedUser || !associatedAnimal) {
@@ -84,6 +87,8 @@ export async function handleAddTrainingLogRequest(req: Request, res: Response) {
     });
     return;
   }
+
+  // Update the animal's hours trained with the hours in this log
   await updateAnimalHoursTrained(
     associatedAnimal._id,
     associatedAnimal.hoursTrained + trainingLog.hours

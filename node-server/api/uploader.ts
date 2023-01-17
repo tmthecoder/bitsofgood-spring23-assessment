@@ -5,6 +5,7 @@ import { getConnection } from "./dbConnector";
 import { getAnimalWithId, getTrainingLogWithId } from "./getItems";
 
 export async function handleUploadRequest(req: Request, res: Response) {
+  // Ensure user & payload data is all present
   if (!req.user) {
     res.status(401).send();
     return;
@@ -21,6 +22,8 @@ export async function handleUploadRequest(req: Request, res: Response) {
     res.status(400).send({ error: "Parameters and/or file not given" });
     return;
   }
+
+  // Check that anumals or logs are associated with the user calling the request
   if (parseResult.data.type == "animal") {
     const animal = await getAnimalWithId(parseResult.data.id);
     if (animal?.owner != req.user._id) {
@@ -41,6 +44,8 @@ export async function handleUploadRequest(req: Request, res: Response) {
       return;
     }
   }
+
+  // Upload the image to Cloudflare R2
   const response = await fetch(
     `${process.env.STORAGE_WORKER_URL}/${parseResult.data.type}/${parseResult.data.id}`,
     {
@@ -48,10 +53,13 @@ export async function handleUploadRequest(req: Request, res: Response) {
       body: file.buffer,
     }
   );
+
   if (response.status != 200) {
     res.status(500).send({ error: "An internal error occurred" });
     return;
   }
+
+  // Save the URL to the MongoDB entry for the item
   let urlData: URLWithPath;
   const url = `${process.env.STORAGE_BUCKET_URL}/${await response.text()}`;
   switch (parseResult.data.type) {

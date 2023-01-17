@@ -50,7 +50,7 @@ describe("POST - /api/animal", () => {
 
 describe("GET - /api/admin/animals", () => {
   const animalArray: any[] = [];
-  // Setup a bunch of animals
+  // Setup a bunch of animals for lookup
   beforeAll(async () => {
     for (let i = 0; i < 50; i++) {
       animalArray.push({
