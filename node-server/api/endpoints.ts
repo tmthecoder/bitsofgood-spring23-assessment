@@ -3,11 +3,10 @@ import 'dotenv/config'
 import cors from 'cors';
 import { AdminRequest, animalSchema, fileUploadBodySchema, loginRequestBodySchema, trainingLogSchema, userSchema, UserWithId } from '../types';
 import { genericAPIAdd, updateAnimalHoursTrained, updateWithURL, URLWithPath } from './addItem';
-import { getAnimalWithId, getListOfTrainingLogs, getListOfUsers, getListOfAnimals, getUserWithId } from './getItems';
+import { getAnimalWithId, getListOfTrainingLogs, getListOfUsers, getListOfAnimals, getUserWithId, getTrainingLogWithId } from './getItems';
 import { validateUser } from './validation';
 import jwt from 'jsonwebtoken'
 import multer, { memoryStorage } from 'multer';
-import { unlink } from 'fs';
 
 const app = express();
 app.use(cors({ origin: true }));
@@ -176,7 +175,7 @@ app.get('/api/admin/training', async (req: AdminRequest, res) => {
     }).send()
 });
 
-const upload = multer({ storage: memoryStorage()})
+const upload = multer({ storage: memoryStorage() })
 app.post('/api/file/upload', upload.single('file'), async (req, res) => {
     if (!req.user) {
         res.status(401).send()
@@ -193,6 +192,21 @@ app.post('/api/file/upload', upload.single('file'), async (req, res) => {
     if (!file || !parseResult.success) {
         res.status(400).send({ error: "Parameters and/or file not given" })
         return
+    }
+    if (parseResult.data.type == "animal") {
+        const animal = await getAnimalWithId(parseResult.data.id);
+        if (animal?.owner != req.user._id) {
+            res.status(400).send({ error: "The animal is not associated with the user calling the request" })
+            return;
+        }
+    }
+
+    if (parseResult.data.type == "training") {
+        const animal = await getTrainingLogWithId(parseResult.data.id);
+        if (animal?.user != req.user._id) {
+            res.status(400).send({ error: "The training log is not associated with the user calling the request" })
+            return;
+        }
     }
     const response = await fetch(`${process.env.STORAGE_WORKER_URL}/${parseResult.data.type}/${parseResult.data.id}`, {
         method: "POST",
