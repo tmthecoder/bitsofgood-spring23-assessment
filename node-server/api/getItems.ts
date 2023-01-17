@@ -1,6 +1,63 @@
+import { Response } from "express";
 import { ObjectId } from "mongodb";
-import { AnimalWithID, TrainingLogWithID, UserWithId } from "../types";
+import {
+  AdminRequest,
+  AnimalWithID,
+  TrainingLogWithID,
+  UserWithId,
+} from "../types";
 import { getConnection } from "./dbConnector";
+
+export async function handleAdminGetUsers(req: AdminRequest, res: Response) {
+  if (!req.user) {
+    res.status(401).send();
+    return;
+  }
+  const size = parseInt(req.query.size ?? "10");
+  const lastId = req.query.lastId;
+  const list = await getListOfUsers(size, lastId);
+  res
+    .json({
+      data: list,
+      lastId: list.at(list.length - 1)?._id,
+    })
+    .send();
+}
+
+export async function handleAdminGetAnimals(req: AdminRequest, res: Response) {
+  if (!req.user) {
+    res.status(401).send();
+    return;
+  }
+  const size = parseInt(req.query.size ?? "10");
+  const lastId = req.query.lastId;
+  const list = await getListOfAnimals(size, lastId);
+  res
+    .json({
+      data: list,
+      lastId: list.at(list.length - 1)?._id,
+    })
+    .send();
+}
+
+export async function handleAdminGetTrainingLogs(
+  req: AdminRequest,
+  res: Response
+) {
+  if (!req.user) {
+    res.status(401).send();
+    return;
+  }
+  const size = parseInt(req.query.size ?? "10");
+  const lastId = req.query.lastId;
+  const list = await getListOfTrainingLogs(size, lastId);
+  res
+    .json({
+      data: list,
+      lastId: list.at(list.length - 1)?._id,
+    })
+    .send();
+}
 
 export async function getUserWithId(id: ObjectId) {
   const result = await getItemWithId("users", id);
@@ -23,17 +80,17 @@ async function getItemWithId(collection: string, id: ObjectId) {
   return await db.collection(collection).findOne({ _id: new ObjectId(id) });
 }
 
-export async function getListOfUsers(size: number, lastId?: string) {
+async function getListOfUsers(size: number, lastId?: string) {
   const result = await getListOfItems("users", size, lastId);
   return result as UserWithId[];
 }
 
-export async function getListOfAnimals(size: number, lastId?: string) {
+async function getListOfAnimals(size: number, lastId?: string) {
   const result = await getListOfItems("animals", size, lastId);
   return result as UserWithId[];
 }
 
-export async function getListOfTrainingLogs(size: number, lastId?: string) {
+async function getListOfTrainingLogs(size: number, lastId?: string) {
   const result = await getListOfItems("trainingLogs", size, lastId);
   return result as UserWithId[];
 }
